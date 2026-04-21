@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Neon Typing Challenge</title>
+    <style>
+        :root {
+            --bg-color: #030712; 
+            --accent-color: #00f2ff; 
+            --accent-glow: 0 0 10px #00f2ff, 0 0 20px #00f2ff, 0 0 30px #00f2ff;
+            --sub-color: #ff00de;
+            --sub-glow: 0 0 5px #ff00de, 0 0 10px #ff00de;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #e2e8f0;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            background-image: linear-gradient(#111 1px, transparent 1px), linear-gradient(90deg, #111 1px, transparent 1px);
+            background-size: 50px 50px;
+            cursor: pointer;
+        }
+
+        #game-container {
+            text-align: center;
+            width: 85%;
+            max-width: 900px;
+            padding: 50px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #222;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);
+        }
+
+        #word-display {
+            font-size: 5rem;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            margin-bottom: 2rem;
+            color: var(--sub-color);
+            text-shadow: var(--sub-glow);
+        }
+
+        .typed { color: var(--accent-color); text-shadow: var(--accent-glow); }
+        .current { border-bottom: 5px solid var(--accent-color); border-radius: 2px; }
+
+        /* 入力欄を画面の真ん中に隠さず配置（透明にするだけ） */
+        #input-field {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        #message {
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            font-size: 1rem;
+            margin-top: 2rem;
+        }
+
+        #stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            text-shadow: var(--accent-glow);
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body onclick="document.getElementById('input-field').focus()">
+
+    <input type="text" id="input-field" autofocus autocomplete="off">
+
+    <div id="game-container">
+        <div id="stats">
+            <div>SCORE: <span id="score">0</span></div>
+            <div>TIME: <span id="timer">60</span>s</div>
+        </div>
+
+        <div id="word-display">START</div>
+        
+        <div id="message">Click anywhere & type "START"</div>
+    </div>
+
+<script>
+    const WORDS = ["nyorokakkoii", "doppyun", "kyoumoichibann", "unko", "manami", "cafelate", "zyoudannzyanaiyo"];
+    let currentWord = "START";
+    let typedChars = 0;
+    let score = 0;
+    let timeLeft = 60;
+    let isPlaying = false;
+    let timerInterval;
+
+    const wordDisplay = document.getElementById('word-display');
+    const inputField = document.getElementById('input-field');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const message = document.getElementById('message');
+
+    // 描画機能
+    function render() {
+        wordDisplay.innerHTML = currentWord.split('').map((char, i) => {
+            let cls = i < typedChars ? "typed" : (i === typedChars ? "current" : "");
+            return `<span class="${cls}">${char}</span>`;
+        }).join('');
+    }
+
+    // 入力判定
+    inputField.addEventListener('input', () => {
+        let val = inputField.value;
+        let target = currentWord[typedChars];
+
+        // 大文字小文字を気にせず判定
+        if (val.toLowerCase().slice(-1) === target.toLowerCase()) {
+            // 最初の1文字でタイマー開始
+            if (!isPlaying) {
+                isPlaying = true;
+                startTimer();
+                message.innerText = "SYSTEM ONLINE";
+                message.style.color = "#00f2ff";
+            }
+
+            typedChars++;
+            if (currentWord !== "START") score++;
+
+            if (typedChars === currentWord.length) {
+                currentWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+                typedChars = 0;
+            }
+            render();
+        }
+        inputField.value = ""; // 常に空にする
+        scoreDisplay.innerText = score;
+    });
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerDisplay.innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                alert("TIME UP! SCORE: " + score);
+                location.reload();
+            }
+        }, 1000);
+    }
+
+    render();
+    // ページが開いた瞬間にフォーカス
+    window.onload = () => inputField.focus();
+</script>
+</body>
+</html>
